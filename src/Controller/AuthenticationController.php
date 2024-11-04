@@ -74,23 +74,13 @@ class AuthenticationController extends AbstractController
          'user' => $user->getUserIdentifier(),
          'token' => $token
       ], Response::HTTP_OK);
+   }
 
-      // $request = Request::createFromGlobals();
-      // $email = $request->request->get("email");
-      // $password = $request->request->get("password");
-
-      // $user = $this->em->getRepository(User::class)->findOneBy(['email' => $email]);
-
-      // if (!$user) {
-      //    return new JsonResponse(['error' => 'Invalid username or password.'], Response::HTTP_UNAUTHORIZED);
-      // }
-
-      // if ($passwordHasher->isPasswordValid($user, $password)) {
-      //    // password is valid, generate the JWT and send
-      //    $token = $JWTManager->create($user);
-      //    return new JsonResponse(['token' => $token], Response::HTTP_OK);
-      // } else {
-      //    return new JsonResponse(['error' => 'Invalid username or password.'], Response::HTTP_UNAUTHORIZED);
-      // }
+   #[Route('/api/test', name: 'test', methods: ['GET'])]
+   public function test(): Response
+   {
+      return new JsonResponse([
+         'welcome-msg' => 'Welcome to Rescue Rover'
+      ], Response::HTTP_OK);
    }
 }
