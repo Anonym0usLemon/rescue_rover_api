@@ -60,20 +60,48 @@ class AuthenticationController extends AbstractController
    }
 
    #[Route('/api/login', name: 'login', methods: ['POST'])]
-   public function login(#[CurrentUser] ?User $user, UserPasswordHasherInterface $passwordHasher, JWTTokenManagerInterface $JWTManager): Response
+   public function login(Request $request, #[CurrentUser] ?User $user, UserPasswordHasherInterface $passwordHasher, JWTTokenManagerInterface $JWTManager): Response
    {
-      if (null === $user) {
-         return $this->json([
-            'message' => 'missing credentials',
-         ], Response::HTTP_UNAUTHORIZED);
+      // if (null === $user) {
+      //    return $this->json([
+      //       'message' => 'missing credentials',
+      //    ], Response::HTTP_UNAUTHORIZED);
+      // }
+
+      // $token = $JWTManager->create($user);
+
+      // return new JsonResponse([
+      //    'user' => $user->getUserIdentifier(),
+      //    'token' => $token
+      // ], Response::HTTP_OK);
+
+      // $request = Request::createFromGlobals();
+
+      
+      $data = json_decode($request->getContent(), true);
+      if (empty($data['username']) || empty($data['password'])) {
+         return new JsonResponse(['error' => 'Missing credentials (email or password)'], Response::HTTP_BAD_REQUEST);
       }
 
-      $token = $JWTManager->create($user);
+      $username = $data['username'];
+      $password = $data['password'];
 
-      return new JsonResponse([
-         'user' => $user->getUserIdentifier(),
-         'token' => $token
-      ], Response::HTTP_OK);
+      $user = $this->em->getRepository(User::class)->findOneBy(['email' => $username]);
+
+      if (!$user) {
+         return new JsonResponse(['error' => 'Invalid username or password.'], Response::HTTP_UNAUTHORIZED);
+      }
+
+      if ($passwordHasher->isPasswordValid($user, $password)) {
+         // password is valid, generate the JWT and send
+         $token = $JWTManager->create($user);
+         return new JsonResponse([
+            'user' => $user->getUserIdentifier(), 
+            'token' => $token
+         ], Response::HTTP_OK);
+      } else {
+         return new JsonResponse(['error' => 'Invalid username or password.'], Response::HTTP_UNAUTHORIZED);
+      }
    }
 
    #[Route('/api/test', name: 'test', methods: ['GET'])]
