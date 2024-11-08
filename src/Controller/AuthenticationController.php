@@ -24,12 +24,20 @@ class AuthenticationController extends AbstractController
    }
 
    #[Route('api/register', name: 'register', methods: 'post')]
-   public function register(UserPasswordHasherInterface $passwordHasher, JWTTokenManagerInterface $JWTManager): Response
+   public function register(Request $request, UserPasswordHasherInterface $passwordHasher, JWTTokenManagerInterface $JWTManager): Response
    {
-      $request = Request::createFromGlobals();
-      $data = json_decode($request->getContent(), true);
-      $email = $data['email'] ?? null; // Use null coalescing operator to handle missing values
-      $password = $data['password'] ?? null;      // check if the user exists 
+      // $request = Request::createFromGlobals();
+      // $data = json_decode($request->getContent(), true);
+      // $email = $data['email'] ?? null; // Use null coalescing operator to handle missing values
+      // $password = $data['password'] ?? null;      // check if the user exists 
+
+      $data = json_decode($request->getContent(), true); 
+      if (empty($data['username'] || empty($data['password']))) {
+         return new JsonResponse(['error' => 'Missing credentials (email or password)'], Response::HTTP_BAD_REQUEST); 
+      }
+
+      $email = $data['username'];
+      $password = $data['password']; 
 
       $user = $this->em->getRepository(User::class)->findOneBy(['email' => $email]);
 
